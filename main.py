@@ -16,11 +16,11 @@ flags.DEFINE_integer("min_length", 1, "Minimum length of input sequence [1]")
 flags.DEFINE_integer("max_length", 10, "Maximum length of output sequence [10]")
 flags.DEFINE_integer("controller_layer_size", 1, "The size of LSTM controller [1]")
 flags.DEFINE_integer("controller_dim", 100, "Dimension of LSTM controller [100]")
-flags.DEFINE_integer("write_head_size", 1, "The number of write head [1]")
-flags.DEFINE_integer("read_head_size", 1, "The number of read head [1]")
+flags.DEFINE_integer("write_head_size", 10, "The number of write head [1]")
+flags.DEFINE_integer("read_head_size", 10, "The number of read head [1]")
 flags.DEFINE_integer("test_max_length", 120, "Maximum length of output sequence [120]")
 flags.DEFINE_string("checkpoint_dir", "checkpoint", "Directory name to save the checkpoints [checkpoint]")
-flags.DEFINE_boolean("is_train", False, "True for training, False for testing [False]")
+flags.DEFINE_boolean("is_train", True, "True for training, False for testing [False]")
 flags.DEFINE_boolean("continue_train", None, "True to continue training from saved checkpoint. False for restarting. None for automatic [None]")
 FLAGS = flags.FLAGS
 
@@ -52,6 +52,7 @@ def main(_):
 
         if FLAGS.is_train:
             cell, ntm = create_ntm(FLAGS, sess)
+            print(" [*] Training NTM model")
             task.train(ntm, FLAGS, sess)
         else:
             cell, ntm = create_ntm(FLAGS, sess, forward_only=True)

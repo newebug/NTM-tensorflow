@@ -53,7 +53,7 @@ def linear(args, output_size, bias, bias_start=0.0, scope=None):
         if len(args) == 1:
             res = tf.matmul(args[0], matrix)
         else:
-            res = tf.matmul(tf.concat_v2(args, 1), matrix)
+            res = tf.matmul(tf.concat(args, 1), matrix)
         if not bias:
             return res
         bias_term = vs.get_variable(
@@ -74,7 +74,7 @@ def Linear(input_, output_size, stddev=0.5,
         input: a 2-D or 1-D data (`Tensor` or `ndarray`)
         output_size: the size of output matrix or vector
     """
-    with tf.variable_scope("Linear", reuse=reuse):
+    with tf.variable_scope("Linear", reuse=reuse) as scope:
         if type(input_) == np.ndarray:
             shape = input_.shape
         else:
@@ -93,8 +93,8 @@ def Linear(input_, output_size, stddev=0.5,
         w_name = "%s_w" % name if name else None
         b_name = "%s_b" % name if name else None
 
-        w = tf.get_variable(w_name, [input_size, output_size], tf.float32,
-                            tf.random_normal_initializer(stddev=stddev))
+        w = tf.get_variable(w_name, [input_size, output_size], tf.float32, initializer=tf.random_normal_initializer(stddev=stddev))
+        
         mul = tf.matmul(input_, w)
 
         if is_range:
@@ -109,7 +109,10 @@ def Linear(input_, output_size, stddev=0.5,
         else:
             b = tf.get_variable(b_name, [output_size], tf.float32, 
                                 tf.random_normal_initializer(stddev=stddev))
-
+        
+        if not reuse:
+            scope.reuse_variables()
+        
         if squeeze:
             output = tf.squeeze(tf.nn.bias_add(mul, b))
         else:
@@ -156,21 +159,21 @@ def circular_convolution(v, k):
         else: return idx
 
     kernels = []
-    for i in xrange(size):
-        indices = [loop(i+j) for j in xrange(kernel_shift, -kernel_shift-1, -1)]
+    for i in range(size):
+        indices = [loop(i+j) for j in range(kernel_shift, -kernel_shift-1, -1)]
         v_ = tf.gather(v, indices)
         kernels.append(tf.reduce_sum(v_ * k, 0))
 
     # # code with double loop
-    # for i in xrange(size):
-    #     for j in xrange(kernel_size):
+    # for i in range(size):
+    #     for j in range(kernel_size):
     #         idx = i + kernel_shift - j + 1
     #         if idx < 0: idx = idx + size
     #         if idx >= size: idx = idx - size
     #         w = tf.gather(v, int(idx)) * tf.gather(kernel, j)
     #         output = tf.scatter_add(output, [i], tf.reshape(w, [1, -1]))
 
-    return tf.dynamic_stitch([i for i in xrange(size)], kernels)
+    return tf.dynamic_stitch([i for i in range(size)], kernels)
 
 def outer_product(*inputs):
     """Computes outer product.
@@ -190,13 +193,13 @@ def outer_product(*inputs):
     elif order == 3:
         size = []
         idx = 1
-        for i in xrange(order):
+        for i in range(order):
             size.append(inputs[i].get_shape()[0])
         output = tf.zeros(size)
 
         u, v, w = inputs[0], inputs[1], inputs[2]
         uv = tf.multiply(inputs[0], inputs[1])
-        for i in xrange(self.size[-1]):
+        for i in range(self.size[-1]):
             output = tf.scatter_add(output, [0,0,i], uv)
 
     return output
